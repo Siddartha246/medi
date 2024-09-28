@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medication Tracking System with Notifications</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            transition: background-color 0.3s;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .medication-list {
+            margin-top: 20px;
+        }
+        .medication-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .medication-item button {
+            margin-left: 5px;
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .medication-item button.edit {
+            background-color: #007bff;
+        }
+        .medication-item button:hover {
+            opacity: 0.8;
+        }
+        .dark-mode {
+            background-color: #333;
+            color: #fff;
+        }
+        .dark-mode .container {
+            background-color: #444;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Medication Tracker</h1>
+        <button id="toggle-theme">Toggle Dark Mode</button>
+        <form id="medication-form">
+            <label for="medication-name">Medication Name:</label>
+            <input type="text" id="medication-name" required>
+
+            <label for="medication-date">Date:</label>
+            <input type="date" id="medication-date" required>
+
+            <label for="medication-time">Time:</label>
+            <input type="time" id="medication-time" required>
+
+            <label for="medication-category">Category:</label>
+            <select id="medication-category" required>
+                <option value="morning">Morning</option>
+                <option value="afternoon">Afternoon</option>
+                <option value="evening">Evening</option>
+            </select>
+
+            <label for="medication-notes">Notes:</label>
+            <input type="text" id="medication-notes">
+
+            <button type="submit">Add Medication</button>
+        </form>
+
+        <div class="medication-list" id="medication-list">
+            <!-- Medication items will be added here dynamically -->
+        </div>
+    </div>
+
+    <script>
+        let medications = [];
+        const currentUser = 'user@example.com'; // For simplicity, assuming a single user
+
+        // Request Notification Permission
+        if (Notification.permission === 'default') {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+                } else {
+                    console.warn('Notification permission denied.');
+                }
+            });
+        }
+
+        document.getElementById('medication-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('medication-name').value;
+            const date = document.getElementById('medication-date').value;
+            const time = document.getElementById('medication-time').value;
+            const category = document.getElementById('medication-category').value;
+            const notes = document.getElementById('medication-notes').value;
+
+            const medication = { id: Date.now(), name, date, time, category, notes };
+            medications.push(medication);
+            saveMedications();
+            addMedicationToDOM(medication);
+            document.getElementById('medication-form').reset();
+        });
+
+        function saveMedications() {
+            localStorage.setItem('medications_' + currentUser, JSON.stringify(medications));
+        }
+
+        function loadMedications() {
+            const storedMedications = localStorage.getItem('medications_' + currentUser);
+            if (storedMedications) {
+                medications = JSON.parse(storedMedications);
+                medications.forEach(addMedicationToDOM);
+            }
+        }
+
+        function addMedicationToDOM(medication) {
+            const medicationItem = document.createElement('div');
+            medicationItem.className = 'medication-item';
+            medicationItem.dataset.id = medication.id;
+            medicationItem.innerHTML = `
+                <span><strong>Medication:</strong> ${medication.name}</span>
+                <span><strong>Date:</strong> ${medication.date}</span>
+                <span><strong>Time:</strong> ${medication.time}</span>
+                <span><strong>Category:</strong> ${medication.category}</span>
+                <span><strong>Notes:</strong> ${medication.notes}</span>
+                <div>
+                    <button class="edit">Edit</button>
+                    <button class="delete">Delete</button>
+                </div>
+            `;
+
+            medicationItem.querySelector('.delete').addEventListener('click', function() {
+                medications = medications.filter(m => m.id !== medication.id);
+                saveMedications();
+                medicationItem.remove();
+            });
+
+            medicationItem.querySelector('.edit').addEventListener('click', function() {
+                document.getElementById('medication-name').value = medication.name;
+                document.getElementById('medication-date').value = medication.date;
+                document.getElementById('medication-time').value = medication.time;
+                document.getElementById('medication-category').value = medication.category;
+                document.getElementById('medication-notes').value = medication.notes;
+                medications = medications.filter(m => m.id !== medication.id);
+                saveMedications();
+                medicationItem.remove();
+      
+        
+    </script>
+</body>
+</html>
